@@ -39,8 +39,59 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { FullAuditResult, ScoreCategoryBreakdown } from "../../types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+const translateAiText = (text: string, lang: string) => {
+  if (lang !== "id") return text;
+  if (!text) return text;
+  
+  const dict: Record<string, string> = {
+    // Executive summary fallbacks
+    "The page was crawled successfully. Advanced AI engine is currently highly requested and busy. Using optimized baseline parameters to formulate key score elements.":
+      "Halaman berhasil dirayapi. Mesin kecerdasan buatan tingkat lanjut saat ini sangat padat dan sibuk. Menggunakan rincian parameter dasar yang dioptimalkan untuk memformulasikan elemen nilai utama.",
+    // Gaps
+    "Advanced gaps analysis requires a quiet API channel":
+      "Analisis celah lanjutan membutuhkan saluran API yang tenang",
+    // Strengths
+    "Presence of HTML document title structure":
+      "Keberadaan struktur judul dokumen HTML",
+    "Uses secure HTTPS connection protocols":
+      "Menggunakan protokol enkripsi koneksi HTTPS yang aman",
+    "Target crawled within timeout constraints":
+      "Target dirayapi dalam batas waktu yang ditentukan",
+    "HTML document parsed":
+      "Dokumen HTML berhasil diurai",
+    "Crawl response received":
+      "Respons perayapan halaman diterima",
+    // Issues
+    "Generative Recommendation Agent Busy":
+      "Agen Rekomendasi Generatif Sedang Sibuk",
+    "The audit system completed physical validation but generative content suggests high API congestion right now.":
+      "Sistem audit berhasil melakukan validasi fisik tetapi konten generatif mendeteksi kemacetan API yang tinggi saat ini.",
+    "This is a temporary third-party API limit. Please submit another audit in a few moments.":
+      "Ini adalah batasan sementara API pihak ketiga. Harap ajukan audit baru dalam beberapa saat.",
+    // FAQ
+    "What are the main services listed?":
+      "Apa saja layanan utama yang terdaftar?",
+    "How can we optimize headings for AI search?":
+      "Bagaimana kita bisa mengoptimalkan judul untuk pencarian AI?",
+    "Why are schema markup structures useful?":
+      "Mengapa struktur markup skema itu berguna?",
+    // Schema
+    "Generic schema recommendation produced via offline algorithmic framework.":
+      "Rekomendasi skema generik yang dihasilkan melalui kerangka kerja algoritmik offline.",
+    "FAQPage": "FAQPage",
+    // Metric badges
+    "Optimized": "Dioptimalkan",
+    "Attention Needed": "Butuh Perhatian",
+    "Healthy": "Sehat",
+    "Failed Verification": "Verifikasi Gagal"
+  };
+
+  const trimmed = text.trim();
+  return dict[trimmed] || text;
+};
+
 export default function AuditResults({ result }: { result: FullAuditResult }) {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const reportRef = useRef<HTMLDivElement>(null);
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -113,9 +164,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
 
   // Recharts Radar graph setup
   const radarData = [
-    { subject: 'SEO Score', main: result.main.seoScore.totalScore, fullMark: 100 },
-    { subject: 'GEO Score', main: result.main.geoScore.totalScore, fullMark: 100 },
-    { subject: 'Technical', main: result.main.technicalScore.totalScore, fullMark: 100 }
+    { subject: t("mainSeoScore"), main: result.main.seoScore.totalScore, fullMark: 100 },
+    { subject: t("geoCitationScore"), main: result.main.geoScore.totalScore, fullMark: 100 },
+    { subject: t("technicalHealth"), main: result.main.technicalScore.totalScore, fullMark: 100 }
   ];
 
   // Add competitor scores to radar chart
@@ -128,13 +179,13 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
   // Recharts Bar graph setup
   const barData = [
     { 
-      name: 'Main Page', 
+      name: t("yourWebsite"), 
       seo: result.main.seoScore.totalScore, 
       geo: result.main.geoScore.totalScore, 
       tech: result.main.technicalScore.totalScore 
     },
     ...result.competitors.map((comp, idx) => ({
-      name: `Competitor ${idx + 1}`,
+      name: `${t("competitorsTab")} ${idx + 1}`,
       seo: comp.seoScore.totalScore,
       geo: comp.geoScore.totalScore,
       tech: comp.technicalScore.totalScore
@@ -150,13 +201,13 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
   const getSeverityBadge = (severity: "Critical" | "High" | "Medium" | "Low") => {
     switch (severity) {
       case "Critical":
-        return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/10 border-red-500/20 font-bold uppercase tracking-wider text-[10px]">Critical</Badge>;
+        return <Badge className="bg-red-500/10 text-red-500 hover:bg-red-500/10 border-red-500/20 font-bold uppercase tracking-wider text-[10px]">{t("critical")}</Badge>;
       case "High":
-        return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/10 border-amber-500/20 font-bold uppercase tracking-wider text-[10px]">High</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/10 border-amber-500/20 font-bold uppercase tracking-wider text-[10px]">{t("high")}</Badge>;
       case "Medium":
-        return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/10 border-blue-500/20 font-bold uppercase tracking-wider text-[10px]">Medium</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/10 border-blue-500/20 font-bold uppercase tracking-wider text-[10px]">{t("medium")}</Badge>;
       case "Low":
-        return <Badge className="bg-zinc-500/10 text-zinc-400 hover:bg-zinc-500/10 border-zinc-500/20 font-bold uppercase tracking-wider text-[10px]">Low</Badge>;
+        return <Badge className="bg-zinc-500/10 text-zinc-400 hover:bg-zinc-500/10 border-zinc-500/20 font-bold uppercase tracking-wider text-[10px]">{t("low")}</Badge>;
     }
   };
 
@@ -194,12 +245,12 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
             {t("executiveSummary")}
           </CardTitle>
           <CardDescription className="text-zinc-500 font-mono text-xs">
-            Synthesized live scan summary measuring citation likelihood and indexing traps
+            {t("synthesizedSummary")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-lg text-zinc-200 leading-relaxed font-medium font-sans">
-            {result.aiAnalysis.executiveSummary}
+            {translateAiText(result.aiAnalysis.executiveSummary, language)}
           </p>
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-zinc-800">
             <div>
@@ -209,19 +260,19 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <ul className="space-y-2">
                 {result.aiAnalysis.topStrengths.slice(0, 3).map((strength, i) => (
                   <li key={i} className="text-sm font-medium text-zinc-300 flex items-start gap-2">
-                    <span className="text-emerald-500 text-xs font-mono font-bold mt-0.5">·</span> {strength}
+                    <span className="text-emerald-500 text-xs font-mono font-bold mt-0.5">·</span> {translateAiText(strength, language)}
                   </li>
                 ))}
               </ul>
             </div>
             <div>
               <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-blue-400" /> {t("statusOnPage")} Gaps
+                <Layers className="h-4 w-4 text-blue-400" /> {t("statusOnPageGaps")}
               </h4>
               <ul className="space-y-2">
                 {result.aiAnalysis.contentGaps.slice(0, 3).map((gap, i) => (
                   <li key={i} className="text-sm font-medium text-zinc-300 flex items-start gap-2">
-                    <span className="text-amber-500 text-xs font-mono font-bold mt-0.5">·</span> {gap}
+                    <span className="text-amber-500 text-xs font-mono font-bold mt-0.5">·</span> {translateAiText(gap, language)}
                   </li>
                 ))}
               </ul>
@@ -259,9 +310,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
         <TabsContent value="overview" className="space-y-8 outline-none">
           {/* Three Score Gauges */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <CircularProgress value={result.main.seoScore.totalScore} label="Main SEO Score" subtitle="Crawler Accessibility & Meta" />
-            <CircularProgress value={result.main.geoScore.totalScore} label="GEO Citation Score" subtitle="LLM Model Retrieval Fit" />
-            <CircularProgress value={result.main.technicalScore.totalScore} label="Technical Health" subtitle="Load Velocity & Security" />
+            <CircularProgress value={result.main.seoScore.totalScore} label={t("mainSeoScore")} subtitle={t("crawlerMeta")} />
+            <CircularProgress value={result.main.geoScore.totalScore} label={t("geoCitationScore")} subtitle={t("llmFit")} />
+            <CircularProgress value={result.main.technicalScore.totalScore} label={t("technicalHealth")} subtitle={t("loadSecurity")} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -269,7 +320,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
             <div className="lg:col-span-2 bg-[#18181b] border border-zinc-800 rounded-xl flex flex-col overflow-hidden min-w-0 w-full">
               <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-500 animate-pulse" /> Algorithmic Performance Index
+                  <TrendingUp className="h-4 w-4 text-blue-500 animate-pulse" /> {t("performanceIndex")}
                 </h3>
               </div>
               <div className="p-4 sm:p-6 flex flex-col items-center justify-center w-full">
@@ -279,7 +330,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                       <PolarGrid stroke="#27272a" strokeOpacity={0.5} />
                       <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fontWeight: 700, fill: '#71717a' }} />
                       <Radar
-                        name="Target Website"
+                        name={t("targetWebsite")}
                         dataKey="main"
                         stroke="#3b82f6"
                         fill="#3b82f6"
@@ -289,7 +340,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                       />
                       {result.competitors.map((c, i) => (
                         <Radar
-                          key={i}
+                           key={i}
                           name={new URL(c.url).hostname}
                           dataKey={`comp${i}`}
                           stroke={["#8b5cf6", "#f97316", "#10b981"][i]}
@@ -307,7 +358,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                 <div className="flex flex-wrap gap-4 mt-4 text-xs font-bold uppercase tracking-wider text-zinc-500">
                   <div className="flex items-center gap-1.5">
                     <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-                    <span>Your Website</span>
+                    <span>{t("yourWebsite")}</span>
                   </div>
                   {result.competitors.map((c, i) => (
                     <div key={i} className="flex items-center gap-1.5">
@@ -322,56 +373,56 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
             {/* Core Web Vitals Panel */}
             <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 flex flex-col justify-between">
               <div className="space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-[#71717a]">Live Audited Metrics</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-[#71717a]">{t("liveAuditedMetrics")}</h3>
                 <div className="space-y-6 pt-2">
                   <div className="flex justify-between items-center py-2 border-b border-zinc-800">
                     <div className="space-y-0.5">
-                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Execution Velocity</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{t("executionVelocity")}</p>
                       <p className="text-2xl font-bold tracking-tight text-white font-mono">{result.main.technicalScore.metrics.loadTime} <span className="text-sm text-zinc-500">ms</span></p>
                     </div>
                     <Badge variant="outline" className={result.main.technicalScore.metrics.loadTime < 1500 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}>
-                      {result.main.technicalScore.metrics.loadTime < 1500 ? "Fast" : "Moderate"}
+                      {result.main.technicalScore.metrics.loadTime < 1500 ? t("fast") : t("moderate")}
                     </Badge>
                   </div>
 
                   <div className="flex justify-between items-center py-2 border-b border-zinc-800">
                     <div className="space-y-0.5">
-                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Secure HTTPS Key</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{t("secureHttpsKey")}</p>
                       <p className="text-sm font-semibold tracking-tight text-zinc-200 flex items-center gap-1.5">
                         <Lock className="h-4 w-4 text-emerald-500" />
-                        {result.main.technicalScore.metrics.hasHttps ? "SSL Handshake Verified" : "Unsecure Non-HTTPS"}
+                        {result.main.technicalScore.metrics.hasHttps ? t("sslVerified") : t("sslInsecure")}
                       </p>
                     </div>
                     <Badge variant="outline" className={result.main.technicalScore.metrics.hasHttps ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-400 border-red-500/20"}>
-                      {result.main.technicalScore.metrics.hasHttps ? "Secured" : "Insecure"}
+                      {result.main.technicalScore.metrics.hasHttps ? t("secured") : t("insecure")}
                     </Badge>
                   </div>
 
                   <div className="flex justify-between items-center py-2">
                     <div className="space-y-0.5">
-                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Mobile Viewport Config</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{t("mobileViewportConfig")}</p>
                       <p className="text-sm font-semibold tracking-tight text-zinc-200 flex items-center gap-1.5">
                         <Smartphone className="h-4 w-4 text-blue-400" />
-                        {result.main.technicalScore.metrics.hasViewport ? "Mobile Viewport Declared" : "Missing Viewport Tags"}
+                        {result.main.technicalScore.metrics.hasViewport ? t("mobileViewportDeclared") : t("mobileViewportMissing")}
                       </p>
                     </div>
                     <Badge variant="outline" className={result.main.technicalScore.metrics.hasViewport ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}>
-                      {result.main.technicalScore.metrics.hasViewport ? "Responsive" : "Non-optimized"}
+                      {result.main.technicalScore.metrics.hasViewport ? t("responsive") : t("nonOptimized")}
                     </Badge>
                   </div>
                 </div>
               </div>
 
               <div className="pt-6 border-t border-zinc-800 space-y-3">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Agent Citation Outlook</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{t("agentCitationOutlook")}</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center p-3 border border-zinc-800 rounded bg-[#09090b] group transition-all duration-300 hover:border-zinc-750">
-                    <div className="text-[9px] text-zinc-500 font-bold uppercase mb-1">LLM Indexing</div>
-                    <div className="text-xs font-bold text-blue-400">Excellent</div>
+                    <div className="text-[9px] text-zinc-500 font-bold uppercase mb-1">{t("llmIndexing")}</div>
+                    <div className="text-xs font-bold text-blue-400">{t("excellent")}</div>
                   </div>
                   <div className="text-center p-3 border border-zinc-800 rounded bg-[#09090b] group transition-all duration-300 hover:border-zinc-750">
-                    <div className="text-[9px] text-zinc-500 font-bold uppercase mb-1">RAG Retrieval</div>
-                    <div className="text-xs font-bold text-emerald-400">High Score</div>
+                    <div className="text-[9px] text-zinc-500 font-bold uppercase mb-1">{t("ragRetrieval")}</div>
+                    <div className="text-xs font-bold text-emerald-400">{t("highScore")}</div>
                   </div>
                 </div>
               </div>
@@ -386,8 +437,8 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <AlertCircle className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-widest text-[#71717a] mb-1">Severity-Ranked Corrections</h3>
-              <p className="text-lg font-bold">Fixes required to avoid citation barriers or indexing issues</p>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#71717a] mb-1">{t("severityRankedCorrections")}</h3>
+              <p className="text-lg font-bold">{t("fixesRequiredDesc")}</p>
             </div>
           </div>
 
@@ -405,7 +456,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                     </div>
                     <div className="flex-1 space-y-1">
                       <div className="flex flex-wrap items-center gap-3">
-                        <span className="font-bold text-base text-zinc-100 tracking-tight">{issue.title}</span>
+                        <span className="font-bold text-base text-zinc-100 tracking-tight">{translateAiText(issue.title, language)}</span>
                         {getSeverityBadge(issue.severity)}
                       </div>
                     </div>
@@ -416,19 +467,19 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                          Description
+                          {t("descriptionLabel")}
                         </label>
                         <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                          {issue.description}
+                          {translateAiText(issue.description, language)}
                         </p>
                       </div>
-
+ 
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
-                          How To Fix
+                          {t("howToFix")}
                         </label>
                         <div className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/25 text-emerald-400 font-semibold text-sm leading-relaxed">
-                          {issue.fix}
+                          {translateAiText(issue.fix, language)}
                         </div>
                       </div>
                     </div>
@@ -437,7 +488,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                       <div className="space-y-2 min-w-0">
                         <div className="flex items-center justify-between">
                           <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-1.5">
-                            <Code className="h-3 w-3" /> Recommended Code Solution
+                            <Code className="h-3 w-3" /> {t("recommendedCodeSolution")}
                           </label>
                           <Button 
                             variant="ghost" 
@@ -448,12 +499,12 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                             {copiedIndex === idx ? (
                               <>
                                 <Check className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
-                                Copied
+                                {t("copiedLabel")}
                               </>
                             ) : (
                               <>
                                 <Copy className="h-3.5 w-3.5 mr-1.5" />
-                                Copy Code
+                                {t("copyCodeLabel")}
                               </>
                             )}
                           </Button>
@@ -470,16 +521,14 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               </AccordionItem>
             ))}
           </Accordion>
-        </TabsContent>
-
-        {/* 3. GEO OPTIMIZATION TAB */}
+        </TabsContent>        {/* 3. GEO OPTIMIZATION TAB */}
         <TabsContent value="geo" className="space-y-8 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               {/* Opportunities list */}
               <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-6 flex items-center gap-1.5">
-                  <Zap className="h-4 w-4 fill-blue-500/10" /> GEO Optimization Opportunities
+                  <Zap className="h-4 w-4 fill-blue-500/10" /> {t("geoOpportunitiesTitle")}
                 </h3>
                 <div className="space-y-6">
                   {result.aiAnalysis.geoOpportunities.map((opp, i) => (
@@ -489,12 +538,12 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                           {i + 1}
                         </div>
                         <div className="flex-1 space-y-1">
-                          <h4 className="font-bold text-base text-zinc-200">{opp.title}</h4>
-                          <p className="text-sm text-zinc-400 leading-relaxed">{opp.description}</p>
+                          <h4 className="font-bold text-base text-zinc-200">{translateAiText(opp.title, language)}</h4>
+                          <p className="text-sm text-zinc-400 leading-relaxed">{translateAiText(opp.description, language)}</p>
                           <div className="mt-3 pt-3 border-t border-zinc-900">
-                            <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Implementation Strategy</p>
+                            <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{t("implementationStrategy")}</p>
                             <p className="text-xs font-semibold text-zinc-300 mt-1 leading-relaxed bg-zinc-900 p-3 rounded-lg border border-zinc-850">
-                              {opp.implementation}
+                              {translateAiText(opp.implementation, language)}
                             </p>
                           </div>
                         </div>
@@ -507,7 +556,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               {/* suggested faq */}
               <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-1.5">
-                  <Search className="h-4 w-4 text-blue-400" /> AI-Suggested FAQ List
+                  <Search className="h-4 w-4 text-blue-400" /> {t("suggestedFaqList")}
                 </h3>
                 <div className="space-y-3">
                   {result.aiAnalysis.suggestedFaqQuestions.map((q, i) => (
@@ -515,7 +564,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                       <div className="h-5 w-5 bg-blue-500/10 text-blue-400 text-[10px] font-mono font-bold rounded-full flex items-center justify-center shrink-0">
                         Q
                       </div>
-                      <span className="text-sm font-semibold text-zinc-300">{q}</span>
+                      <span className="text-sm font-semibold text-zinc-300">{translateAiText(q, language)}</span>
                     </div>
                   ))}
                 </div>
@@ -527,24 +576,24 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <Card className="border-blue-500/30 bg-zinc-950 shadow-2xl relative overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-base uppercase tracking-widest text-blue-400 flex items-center gap-2">
-                    <Code className="h-4 w-4" /> JSON-LD Structured Schema
+                    <Code className="h-4 w-4" /> {t("jsonLdStructuredSchema")}
                   </CardTitle>
                   <CardDescription className="text-zinc-500 text-xs">
-                    Tailored JSON code structured for RAG agents
+                    {t("tailoredJsonDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 min-w-0">
                   <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-2">
-                    <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold font-mono">Recommended Type</div>
+                    <div className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold font-mono">{t("recommendedSchemaType")}</div>
                     <Badge className="bg-blue-600 font-bold px-3 py-1 text-white">{result.aiAnalysis.schemaRecommendation?.type || "FAQPage"}</Badge>
                     <p className="text-xs text-zinc-400 leading-relaxed mt-2 font-medium">
-                      {result.aiAnalysis.schemaRecommendation?.reason}
+                      {translateAiText(result.aiAnalysis.schemaRecommendation?.reason, language)}
                     </p>
                   </div>
                   
                   <div className="space-y-2 pt-2 min-w-0">
                     <div className="flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-widest gap-2">
-                      <span>Structured Payload</span>
+                      <span>{t("schemaPayload")}</span>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -580,7 +629,7 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
         <TabsContent value="breakdown" className="space-y-6 outline-none">
           <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl max-w-4xl">
             <h3 className="text-sm font-bold uppercase tracking-widest text-[#71717a] mb-6 flex items-center gap-2">
-              <Award className="h-5 w-5 text-blue-500" /> Detailed Scoring Parameters Audit
+              <Award className="h-5 w-5 text-blue-500" /> {t("detailedScoringParameters")}
             </h3>
             
             <Accordion type="multiple" defaultValue={["seo-break"]} className="w-full space-y-4">
@@ -588,9 +637,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <AccordionItem value="seo-break" className="border border-zinc-800 rounded-xl bg-zinc-950 overflow-hidden">
                 <AccordionTrigger className="hover:no-underline px-6 py-4 bg-zinc-900/30">
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="font-bold text-zinc-200">Traditional SEO Factors Matrix</span>
+                    <span className="font-bold text-zinc-200">{t("traditionalSeoMatrix")}</span>
                     <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 font-mono">
-                      Score: {result.main.seoScore.totalScore}/100
+                      {t("scoreText")}: {result.main.seoScore.totalScore}/100
                     </Badge>
                   </div>
                 </AccordionTrigger>
@@ -599,14 +648,14 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                     <div key={i} className="py-3 border-b border-zinc-900 last:border-0 flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="space-y-1 md:max-w-2xl">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm text-zinc-300">{row.category}</p>
+                          <p className="font-bold text-sm text-zinc-300">{translateAiText(row.category, language)}</p>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${row.score === row.maxScore ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-400"}`}>
-                            {row.score === row.maxScore ? "Optimized" : "Attention Needed"}
+                            {row.score === row.maxScore ? t("optimized") : t("attentionNeeded")}
                           </span>
                         </div>
                         {row.issues.map((iss, j) => (
                           <p key={j} className="text-xs text-zinc-500 font-medium flex items-center gap-1.5">
-                            <span className="text-zinc-500 font-bold">•</span> {iss}
+                            <span className="text-zinc-500 font-bold">•</span> {translateAiText(iss, language)}
                           </p>
                         ))}
                       </div>
@@ -622,9 +671,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <AccordionItem value="geo-break" className="border border-zinc-800 rounded-xl bg-zinc-950 overflow-hidden">
                 <AccordionTrigger className="hover:no-underline px-6 py-4 bg-zinc-900/30">
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="font-bold text-zinc-200">GEO Generative Search Factors Matrix</span>
+                    <span className="font-bold text-zinc-200">{t("geoSearchMatrix")}</span>
                     <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20 font-mono">
-                      Score: {result.main.geoScore.totalScore}/100
+                      {t("scoreText")}: {result.main.geoScore.totalScore}/100
                     </Badge>
                   </div>
                 </AccordionTrigger>
@@ -633,19 +682,19 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                     <div key={i} className="py-3 border-b border-zinc-900 last:border-0 flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="space-y-1 md:max-w-2xl">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm text-zinc-300">{row.category}</p>
+                          <p className="font-bold text-sm text-zinc-300">{translateAiText(row.category, language)}</p>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${row.score === row.maxScore ? "bg-emerald-500/10 text-emerald-400" : "bg-blue-500/10 text-blue-400"}`}>
-                            {row.score === row.maxScore ? "Optimized" : "Attention Needed"}
+                            {row.score === row.maxScore ? t("optimized") : t("attentionNeeded")}
                           </span>
                         </div>
                         {row.issues.map((iss, j) => (
                           <p key={j} className="text-xs text-zinc-500 font-medium flex items-center gap-1.5">
-                            <span className="text-zinc-500 font-bold">•</span> {iss}
+                            <span className="text-zinc-500 font-bold">•</span> {translateAiText(iss, language)}
                           </p>
                         ))}
                       </div>
                       <span className="text-sm font-bold font-mono text-zinc-400 text-right shrink-0">
-                        {row.score} <span className="text-zinc-600 text-xs font-normal">/ {row.maxScore}</span>
+                        {row.score} <span className="text-zinc-650 text-xs font-normal">/ {row.maxScore}</span>
                       </span>
                     </div>
                   ))}
@@ -656,9 +705,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
               <AccordionItem value="tech-break" className="border border-zinc-800 rounded-xl bg-zinc-950 overflow-hidden">
                 <AccordionTrigger className="hover:no-underline px-6 py-4 bg-zinc-900/30">
                   <div className="flex items-center justify-between w-full pr-4">
-                    <span className="font-bold text-zinc-200">Technical SEO Standards Matrix</span>
+                    <span className="font-bold text-zinc-200">{t("technicalSeoMatrix")}</span>
                     <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 font-mono">
-                      Score: {result.main.technicalScore.totalScore}/100
+                      {t("scoreText")}: {result.main.technicalScore.totalScore}/100
                     </Badge>
                   </div>
                 </AccordionTrigger>
@@ -667,14 +716,14 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                     <div key={i} className="py-3 border-b border-zinc-900 last:border-0 flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="space-y-1 md:max-w-2xl">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm text-zinc-300">{row.category}</p>
+                          <p className="font-bold text-sm text-zinc-300">{translateAiText(row.category, language)}</p>
                           <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${row.score === row.maxScore ? "bg-emerald-500/10 text-emerald-400" : "bg-amber-500/10 text-amber-500"}`}>
-                            {row.score === row.maxScore ? "Healthy" : "Failed Verification"}
+                            {row.score === row.maxScore ? t("healthy") : t("failedVerification")}
                           </span>
                         </div>
                         {row.issues.map((iss, j) => (
                           <p key={j} className="text-xs text-zinc-500 font-medium flex items-center gap-1.5">
-                            <span className="text-zinc-500 font-bold">•</span> {iss}
+                            <span className="text-zinc-500 font-bold">•</span> {translateAiText(iss, language)}
                           </p>
                         ))}
                       </div>
@@ -695,8 +744,8 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <Card className="lg:col-span-2 border-zinc-800 bg-zinc-950 min-w-0 w-full">
               <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-zinc-400">Competitive Performance Comparison</CardTitle>
-                <CardDescription className="text-zinc-500 text-xs">Comparing SEO, GEO and Technical parameters across scanned targets</CardDescription>
+                <CardTitle className="text-sm font-bold uppercase tracking-widest text-zinc-400">{t("competitivePerformanceComparison")}</CardTitle>
+                <CardDescription className="text-zinc-500 text-xs">{t("comparingSeoGeoTech")}</CardDescription>
               </CardHeader>
               <CardContent className="p-3 sm:p-6 w-full overflow-hidden">
                 <div className="h-[280px] w-full min-w-0">
@@ -707,9 +756,9 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                       <YAxis tick={{ fill: '#71717a', fontSize: 11 }} stroke="#27272a" />
                       <ReTooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px', color: '#fff' }} />
                       <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', textTransform: 'uppercase', fontStyle: 'normal' }} />
-                      <Bar dataKey="seo" name="SEO Score" fill="#2563eb" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                      <Bar dataKey="geo" name="GEO Score" fill="#d97706" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-                      <Bar dataKey="tech" name="Technical Score" fill="#10b981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="seo" name={t("mainSeoScore")} fill="#2563eb" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="geo" name={t("geoCitationScore")} fill="#d97706" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                      <Bar dataKey="tech" name={t("technicalHealth")} fill="#10b981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -719,18 +768,18 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
             <Card className="border-zinc-800 bg-[#18181b] flex flex-col justify-between">
               <CardHeader>
                 <CardTitle className="text-base font-bold flex items-center gap-1.5 text-blue-400">
-                  <Award className="h-5 w-5" /> Gemini Competitive Insight
+                  <Award className="h-5 w-5" /> {t("geminiCompetitiveInsight")}
                 </CardTitle>
-                <CardDescription className="text-zinc-500 text-xs">Advanced tactical playbook to outperform nearby organic competitors</CardDescription>
+                <CardDescription className="text-zinc-500 text-xs">{t("advancedTacticalPlaybook")}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm leading-relaxed text-zinc-300 font-medium">
+              <CardContent className="space-y-4 text-sm leading-relaxed text-zinc-300 font-medium font-sans">
                 {result.aiAnalysis.competitorInsights ? (
-                  <p className="whitespace-pre-line">{result.aiAnalysis.competitorInsights}</p>
+                  <p className="whitespace-pre-line leading-relaxed">{result.aiAnalysis.competitorInsights}</p>
                 ) : (
                   <div className="flex flex-col items-center justify-center p-6 text-center space-y-3">
                     <Shield className="h-10 w-10 text-zinc-500 opacity-20" />
-                    <p className="text-xs text-zinc-500 uppercase tracking-tight font-bold">No Competitor URLs Audited</p>
-                    <p className="text-xs text-zinc-400">Add up to 3 competitor URLs in the input dashboard to receive comparative AI insights.</p>
+                    <p className="text-xs text-zinc-500 uppercase tracking-tight font-bold">{t("noCompetitorAudited")}</p>
+                    <p className="text-xs text-zinc-400">{t("addCompetitorsDesc")}</p>
                   </div>
                 )}
               </CardContent>

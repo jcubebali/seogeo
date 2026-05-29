@@ -20,7 +20,7 @@ async function startServer() {
   // Real SEO and GEO Audit Pipeline API
   app.post("/api/audit", async (req, res) => {
     try {
-      const { url, competitors = [] } = req.body;
+      const { url, competitors = [], lang = "en" } = req.body;
       if (!url) {
         return res.status(400).json({ error: "URL is required" });
       }
@@ -68,7 +68,7 @@ async function startServer() {
       );
 
       // 3. Run Gemini AI analysis
-      const aiAnalysis = await runGeminiAnalysis(parsed, seoScore, geoScore, competitorResults);
+      const aiAnalysis = await runGeminiAnalysis(parsed, seoScore, geoScore, competitorResults, lang);
 
       res.json({
         timestamp: new Date().toISOString(),

@@ -66,7 +66,7 @@ export default function App() {
     setIsLoading(true);
     setErrorMsg(null);
     setProgress(5);
-    setProgressText("Fetching page...");
+    setProgressText(t("fetchingPage"));
     setAuditResult(null);
 
     const competitorUrls = data.competitors?.map(c => c.url).filter(url => url && url.trim() !== "") || [];
@@ -74,11 +74,11 @@ export default function App() {
     // Step-by-step progress indicator
     let currentStep = 0;
     const progressSteps = [
-      { p: 15, t: "Fetching page..." },
-      { p: 35, t: "Analyzing SEO..." },
-      { p: 55, t: "Analyzing GEO..." },
-      { p: 75, t: "Running AI analysis..." },
-      { p: 92, t: "Comparing competitors..." }
+      { p: 15, t: t("fetchingPage") },
+      { p: 35, t: t("analyzingSeo") },
+      { p: 55, t: t("analyzingGeo") },
+      { p: 75, t: t("runningAi") },
+      { p: 92, t: t("comparingCompetitors") }
     ];
 
     const timer = setInterval(() => {
@@ -93,7 +93,7 @@ export default function App() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: data.url, competitors: competitorUrls }),
+        body: JSON.stringify({ url: data.url, competitors: competitorUrls, lang: language }),
       });
       
       if (!response.ok) {
