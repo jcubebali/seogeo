@@ -12,16 +12,57 @@ const ai = new GoogleGenAI({
 });
 
 export async function runGeminiAnalysis(
+  url: string,
   parsed: ParsedPage,
   seoScore: SeoAnalysis,
   geoScore: GeoAnalysis,
-  competitorDataList: { url: string; seoScore: any; geoScore: any }[] = [],
+  technicalScore: any,
+  competitorDataList: any[] = [],
   lang: "en" | "id" = "en"
 ): Promise<AiAnalysis> {
+  const getOverallScore = (seo: any, geo: any, tech: any) => {
+    const s = seo?.totalScore ?? 0;
+    const g = geo?.totalScore ?? 0;
+    const t = tech?.totalScore ?? 0;
+    return Math.round((s + g + t) / 3);
+  };
+
+  const mainObj = {
+    url,
+    seoScore,
+    geoScore,
+    technicalScore,
+    totalScore: getOverallScore(seoScore, geoScore, technicalScore)
+  };
+
+  const competitorObjs = competitorDataList.map((comp) => ({
+    url: comp.url,
+    seoScore: comp.seoScore,
+    geoScore: comp.geoScore,
+    technicalScore: comp.technicalScore || { totalScore: 0, breakdown: [], metrics: { loadTime: 0, status: 0, hasViewport: false, hasHttps: false } },
+    totalScore: getOverallScore(comp.seoScore, comp.geoScore, comp.technicalScore)
+  }));
+
+  const allEntities = [mainObj, ...competitorObjs];
+  const ranking = [...allEntities].sort((a, b) => b.totalScore - a.totalScore);
+  const mainPosition = ranking.findIndex((item) => item.url === url) + 1;
+
+  const comparison = {
+    main: mainObj,
+    competitors: competitorObjs,
+    ranking,
+    mainPosition
+  };
+
   const competitorContext = competitorDataList.length > 0 
-    ? competitorDataList.map((comp) => {
-        return `- Competitor URL: ${comp.url}\n  SEO Score: ${comp.seoScore.totalScore}/100\n  GEO Score: ${comp.geoScore.totalScore}/100`;
-      }).join("\n")
+    ? `We have analyzed the target page against its direct competitors. Here is the structured comparison data containing individual scores, a combined ranking, and the target website's standings:
+${JSON.stringify(comparison, null, 2)}
+
+Instructions for the 'competitorInsights' section:
+Please provide a detailed, highly strategic comparative analysis. Specifically:
+1. Explain how the target page compares to the competitors in the SEO, GEO, and Technical dimensions.
+2. Note the target website's rank/position among its competitors (it is in position ${mainPosition} out of ${allEntities.length} sites evaluated, with an overall combined score of ${mainObj.totalScore}/100).
+3. Identify exactly where the target page is winning, where it is losing, and provide a clear, prioritized, step-by-step roadmap to beat them.`
     : "No competitors supplied for auditing.";
 
   const languagePromptInstruction = lang === "id"

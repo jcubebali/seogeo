@@ -43,13 +43,18 @@ const translateAiText = (text: string, lang: string) => {
   if (lang !== "id") return text;
   if (!text) return text;
   
+  const trimmed = text.trim();
+
+  // 1. Check exact match dictionaries first
   const dict: Record<string, string> = {
-    // Executive summary fallbacks
+    // Executive summary and main fallbacks
     "The page was crawled successfully. Advanced AI engine is currently highly requested and busy. Using optimized baseline parameters to formulate key score elements.":
       "Halaman berhasil dirayapi. Mesin kecerdasan buatan tingkat lanjut saat ini sangat padat dan sibuk. Menggunakan rincian parameter dasar yang dioptimalkan untuk memformulasikan elemen nilai utama.",
-    // Gaps
     "Advanced gaps analysis requires a quiet API channel":
       "Analisis celah lanjutan membutuhkan saluran API yang tenang",
+    "Competitors were evaluated algorithmically in the chart dashboard above.":
+      "Kompetitor dievaluasi secara algoritmik dalam bagan dasbor di atas.",
+
     // Strengths
     "Presence of HTML document title structure":
       "Keberadaan struktur judul dokumen HTML",
@@ -61,33 +66,229 @@ const translateAiText = (text: string, lang: string) => {
       "Dokumen HTML berhasil diurai",
     "Crawl response received":
       "Respons perayapan halaman diterima",
-    // Issues
+
+    // Offline AI fallbacks
     "Generative Recommendation Agent Busy":
       "Agen Rekomendasi Generatif Sedang Sibuk",
     "The audit system completed physical validation but generative content suggests high API congestion right now.":
       "Sistem audit berhasil melakukan validasi fisik tetapi konten generatif mendeteksi kemacetan API yang tinggi saat ini.",
     "This is a temporary third-party API limit. Please submit another audit in a few moments.":
       "Ini adalah batasan sementara API pihak ketiga. Harap ajukan audit baru dalam beberapa saat.",
-    // FAQ
+    "Analisis celah lanjutan membutuhkan saluran API yang tenang":
+      "Analisis celah lanjutan membutuhkan saluran API yang tenang",
+
+    // FAQs fallback
     "What are the main services listed?":
       "Apa saja layanan utama yang terdaftar?",
     "How can we optimize headings for AI search?":
       "Bagaimana kita bisa mengoptimalkan judul untuk pencarian AI?",
     "Why are schema markup structures useful?":
       "Mengapa struktur markup skema itu berguna?",
+    "Why is structured schema markup useful?":
+      "Mengapa markup skema terstruktur itu berguna?",
+
     // Schema
     "Generic schema recommendation produced via offline algorithmic framework.":
       "Rekomendasi skema generik yang dihasilkan melalui kerangka kerja algoritmik offline.",
     "FAQPage": "FAQPage",
+
     // Metric badges
     "Optimized": "Dioptimalkan",
     "Attention Needed": "Butuh Perhatian",
     "Healthy": "Sehat",
-    "Failed Verification": "Verifikasi Gagal"
+    "Failed Verification": "Verifikasi Gagal",
+
+    // Traditional SEO Categories
+    "Title Tag": "Tag Judul",
+    "Meta Description": "Deskripsi Meta",
+    "Heading Structure": "Struktur Judul (Heading)",
+    "Image Alt Text": "Teks Alternatif (Alt) Gambar",
+    "Internal Links": "Tautan Internal",
+    "Schema Markup": "Markup Skema",
+    "Open Graph Protocols": "Protokol Open Graph",
+    "HTTPS Secure Connection": "Koneksi Aman HTTPS",
+    "Canonical Tag": "Tag Kanonikal",
+    "Robots Directives": "Petunjuk Robots",
+
+    // GEO Categories
+    "Q&A Structure": "Struktur Tanya-Jawab",
+    "Direct Answer Potential": "Potensi Jawaban Langsung",
+    "Authority & Expertise Signals": "Sinyal Otoritas & Keahlian",
+    "Structured Data Richness": "Kekayaan Data Terstruktur",
+    "Citation-Friendly Layout": "Tata Letak Ramah Kutipan",
+    "Information Freshness": "Kekinian Informasi",
+
+    // Technical SEO Categories
+    "HTTPS Secure Encryption": "Enkripsi Aman HTTPS",
+    "Connection Status Response": "Respons Status Koneksi",
+    "Page Load Velocity": "Kecepatan Muat Halaman",
+    "Viewport Mobile Support": "Dukungan Viewport Seluler",
+    "Canonical Integrity": "Integritas Kanonikal",
+    "Robots Crawler Policy": "Kebijakan Perayap Robots",
+    "OG Thumbnail Visuals": "Visual Gambar Mini OG",
+
+    // General messages
+    "Title tag is missing.": "Tag judul tidak ditemukan atau kosong.",
+    "Meta description is missing.": "Deskripsi meta tidak ditemukan atau kosong.",
+    "Missing H1 heading. Every page should have exactly one main H1 tag.": "Tag H1 tidak ditemukan. Setiap halaman harus memiliki tepat satu tag H1 utama.",
+    "H1 is present but no H2 sub-headlines were found. It is highly recommended to structure your content using H2 or H3 titles.":
+      "Tag H1 ditemukan tetapi tidak ada sub-judul H2 yang ditemukan. Sangat disarankan untuk mendistribusikan konten Anda menggunakan judul H2 atau H3.",
+    "No images present, perfect scoring given": "Tidak ada gambar di halaman ini, poin penuh diberikan.",
+    "No internal links found on this page. Adding internal links helps distribute ranking authority and aids user site navigation.":
+      "Tidak ada tautan internal di halaman ini. Menambahkan tautan internal membantu mendistribusikan otoritas peringkat dan memandu pengguna dalam menjelajah.",
+    "No schema structured data (JSON-LD) detected. Structured data is vital for rich search results.":
+      "Tidak ada skema data terstruktur (JSON-LD) terdeteksi. Data terstruktur sangat berguna untuk memunculkan hasil mading kaya di mesin pencari.",
+    "The website does not use secure HTTPS protocol. Search engines prioritize secure URLs.":
+      "Situs web tidak menggunakan protokol HTTPS yang aman. Mesin pencari memprioritaskan alamat web yang terlindungi SSL.",
+    "Canonical tag rel=\"canonical\" is missing. This causes duplication issue vulnerability.":
+      "Tag kanonikal rel=\"canonical\" tidak dideklarasikan. Hal ini menyebabkan risiko kerentanan isu konten duplikat.",
+    "Target contains robots config 'noindex'. This commands crawlers NOT to list this site in search indexes.":
+      "Target mengandung konfigurasi robots 'noindex'. Ini menginstruksikan perayap untuk TIDAK mengindeks halaman ini.",
+    "No question-and-answer structural signals detected (no question headings or FAQ schemas). AI search engines rely heavily on Q&A formatting to source answers.":
+      "Tidak ada sinyal struktural tanya-jawab terdeteksi. Mesin pencari AI sangat bergantung pada format tanya-jawab untuk dijadikan sebagai kutipan jawaban langsung.",
+    "No concise direct-answer paragraph formats found in the first 20 paragraphs. AI models look for clear definition pairs (e.g., 'X is Y' or 'To construct X...') to extract quick definitions.":
+      "Tidak ada format paragraf jawaban langsung yang ringkas ditemukan dalam 20 paragraf pertama. Model AI mencari definisi yang jelas (misalnya 'X adalah Y') untuk jawaban cepat.",
+    "No explicit author byline or Person schema markup. Credibility signals are crucial for search evaluation.":
+      "Tidak ada informasi penulis atau markup skema Person secara jelas. Sinyal kredibilitas ditekankan untuk penilaian keandalan konten.",
+    "No schema types detected. Structured catalogs are critical for direct model ingestion.":
+      "Tidak ada tipe skema yang terdeteksi. Katalog terstruktur diprioritaskan oleh model AI.",
+    "No numbered list `<ol>` tags detected. Numbered step indicators are frequently cited by engines for instruct sets.":
+      "Tidak ada tag daftar bernomor `<ol>` terdeteksi. Instruksi langkah berurutan sering dikutip oleh mesin generatif.",
+    "Low semantic highlighting (no bold words, dt lists, etc.). Highlighting key terminology boosts structural parsing.":
+      "Penyorotan semantik rendah (tidak ada cetak tebal dll.). Menampilkan istilah penting akan meningkatkan parsing struktural.",
+    "No clear TL;DR or summary headline found (H1/H2 with 'Summary', 'Conclusion', 'TLDR'). AI models highly value upfront synthetics.":
+      "Tidak ditemukan ringkasan TL;DR atau sub-judul ringkasan (H1/H2 dengan kata 'Summary/Ringkasan/Kesimpulan'). Model AI sangat mengapresiasi ringkasan di awal.",
+    "No published/modified metadata dates detected in OG tags or schema context. Engines prioritize clear freshness timestamps.":
+      "Tidak ada tanggal pembaruan terdeteksi di tag OG atau skema. Mesin pencari memprioritaskan konten dengan stempel waktu terbaru.",
+    "Secure connection (HTTPS) is not detected. Search engines and browsers restrict non-encrypted sites.":
+      "Koneksi aman HTTPS tidak terdeteksi. Mesin pencari dan peramban membatasi akses ke situs yang tidak terenkripsi.",
+    "No responsive viewport meta tag detected. This content is not ready for mobile optimization index frameworks.":
+      "Tidak ada tag meta viewport yang responsif. Konten tidak siap untuk pengindeksan seluler.",
+    "No canonical link meta declared on this page. Duplicated URLs risk dilution of organic index value.":
+      "Tidak ada metadata tautan kanonikal di halaman ini. Halaman duplikat dapat menurunkan kredibilitas organik halaman asli.",
+    "No canonical link meta declared on this page. Declared URLs protect against organic duplication issues.":
+      "Tidak ada metadata tautan kanonikal di halaman ini. Menyertakan URL asli melindungi Anda dari sanksi konten duplikat.",
+    "The page has 'noindex' specified in crawler meta instructions, completely blocking search results distribution.":
+      "Halaman ini memasang aturan 'noindex' di instruksi crawler, sepenuhnya mematikan indeks jangkauan di mesin pencari.",
+    "No Open Graph metadata image defined. Social previews will render without associated thumbnail previews.":
+      "Gambar metadata Open Graph tidak disetel. Tampilan media sosial akan muncul tanpa pratinjau gambar miniatur."
   };
 
-  const trimmed = text.trim();
-  return dict[trimmed] || text;
+  if (dict[trimmed]) {
+    return dict[trimmed];
+  }
+
+  // 2. Regex checks for dynamic patterns containing variable numbers, links, names
+  
+  // Title tag length
+  let match = trimmed.match(/^Title tag is too short \((?<len>\d+) characters\)\. Recommended: 30-60 characters\./i);
+  if (match) {
+    return `Tag judul terlalu pendek (${match.groups?.len} karakter). Direkomendasikan: 30-60 karakter.`;
+  }
+  match = trimmed.match(/^Title tag is too long \((?<len>\d+) characters\)\. Recommended: 30-60 characters\./i);
+  if (match) {
+    return `Tag judul terlalu panjang (${match.groups?.len} karakter). Direkomendasikan: 30-60 karakter.`;
+  }
+
+  // Meta Description length
+  match = trimmed.match(/^Meta description is too short \((?<len>\d+) characters\)\. Recommended: 120-160 characters\./i);
+  if (match) {
+    return `Deskripsi meta terlalu pendek (${match.groups?.len} karakter). Direkomendasikan: 120-160 karakter.`;
+  }
+  match = trimmed.match(/^Meta description is too long \((?<len>\d+) characters\)\. Recommended: 120-160 characters\./i);
+  if (match) {
+    return `Deskripsi meta terlalu panjang (${match.groups?.len} karakter). Direkomendasikan: 120-160 karakter.`;
+  }
+
+  // Multiple H1s
+  match = trimmed.match(/^Multiple H1 headings detected \((?<count>\d+) found\)\. Recommended: exactly one H1 tag\./i);
+  if (match) {
+    return `Beberapa judul H1 terdeteksi (${match.groups?.count} ditemukan). Direkomendasikan: cukup satu tag H1 saja.`;
+  }
+
+  // Images and alt text missing counts
+  match = trimmed.match(/^(?<missing>\d+) of (?<total>\d+) images are missing alternative 'alt' tags\./i);
+  if (match) {
+    return `${match.groups?.missing} dari ${match.groups?.total} gambar tidak memiliki tag alternatif 'alt'.`;
+  }
+  match = trimmed.match(/^Missing Alt \[(?<idx>\d+)\]:\s*(?<src>.+)/i);
+  if (match) {
+    return `Alt Hilang [${match.groups?.idx}]: ${match.groups?.src}`;
+  }
+
+  // Internal link low count
+  match = trimmed.match(/^Low internal linking count \((?<count>\d+) found\)\. It is recommended to have at least 5 links for better navigation depth\./i);
+  if (match) {
+    return `Jumlah tautan internal minim (${match.groups?.count} ditemukan). Direkomendasikan setidaknya memiliki 5 tautan internal untuk navigasi yang memadai.`;
+  }
+
+  // Standard schemas types list
+  match = trimmed.match(/^Standard schema markup type\(s\) discovered:\s*\((?<types>.*)\)\. Consider reinforcing with specialized models like FAQPage or Article for rich result optimization\./i);
+  if (match) {
+    return `Jenis skema dasar ditemukan: (${match.groups?.types}). Coba tingkatkan dengan tipe handal seperti FAQPage atau Article untuk merangsang hasil kaya.`;
+  }
+
+  // Missing OG list
+  match = trimmed.match(/^Missing Open Graph tags:\s*(?<tags>.+)\. These are critical for social sharing optics\./i);
+  if (match) {
+    return `Tag Open Graph tidak lengkap: ${match.groups?.tags}. Penting untuk menunjang tampilan saat dibagikan.`;
+  }
+
+  // Question subheadings count
+  match = trimmed.match(/^Found (?<count>\d+) question-like headlines in H2\/H3 tags\. Add an FAQPage JSON-LD schema to upgrade this category to maximum points\./i);
+  if (match) {
+    return `Ditemukan ${match.groups?.count} sub-judul bermuatan tanya di H2/H3. Tambahkan skema JSON-LD FAQPage untuk meningkatkan subskor kategori ini ke puncak.`;
+  }
+
+  // Direct definitions definitions
+  match = trimmed.match(/^Discovered (?<count>\d+) direct definitions or micro-paragraphs \(<150 words\/chars\)\. Add more direct, high-impact answers near key questions to maximize GEO visibility\./i);
+  if (match) {
+    return `Menemukan ${match.groups?.count} paragraf definisi langsung (<150 kata/karakter). Tambahkan lebih banyak ringkasan tajam dekat pertanyaan pokok untuk visibilitas GEO optimal.`;
+  }
+
+  // Authority word counts
+  match = trimmed.match(/^Low overall text density \((?<count>\d+) words\)\. Comprehensive guides over 1500 words generally achieve far better citation indexes\./i);
+  if (match) {
+    return `Otoritas membaca rendah (${match.groups?.count} kata). Teks rujukan komprehensif di atas 1500 kata lebih bersahabat dengan model bahasa raksasa.`;
+  }
+
+  // GEO Publisher schemas
+  match = trimmed.match(/^No specialized publisher schemas \((?<schemas>.*)\) identified\. These schemas explicitly instruct LLMs about content types\./i);
+  if (match) {
+    return `Tidak ada kerangka skema spesifik (${match.groups?.schemas}) terdeteksi. Skema ini melatih model bahasa AI memahami bobot konten Anda secara akurat.`;
+  }
+
+  // Freshness temporal reference missing in title
+  match = trimmed.match(/^No target year reference \((?<year>\d+)\) detected in URL or main title, representing potential loss of current-intent relevance signals\./i);
+  if (match) {
+    return `Referensi tahun target (${match.groups?.year}) tidak ditemukan di judul utama, yang dapat mengurangi indeks kesegaran untuk pencarian saat ini.`;
+  }
+
+  // HTTP status
+  match = trimmed.match(/^Site returned HTTP Status (?<status>\d+)\. A healthy indexing requires HTTP status 200\./i);
+  if (match) {
+    return `Situs memberikan respons saksama HTTP ${match.groups?.status}. Sistem penjelajah menghendaki status 200 OK untuk optimalisasi jangkauan.`;
+  }
+
+  // Load time moderate
+  match = trimmed.match(/^Page loaded in (?<time>\d+)ms\. This is moderate, but optimizing server response time under 1000ms is beneficial\./i);
+  if (match) {
+    return `Halaman tuntas dimuat dalam ${match.groups?.time}ms. Kecepatan ini tergolong normal, tetapi menguranginya ke bawah 1000ms akan menjadi kelebihan besar.`;
+  }
+
+  // Load time slow
+  match = trimmed.match(/^Slow execution load time \((?<time>\d+)ms\)\. High TTFB latency can impair Core Web Vitals\./i);
+  if (match) {
+    return `Waktu muat lambat terdeteksi (${match.groups?.time}ms). Latensi TTFB yang lamban mengurangi Core Web Vitals.`;
+  }
+
+  // Load time exceptionally slow
+  match = trimmed.match(/^Excessively slow load time detected \((?<time>\d+)ms\)\. High page weight is a bounce-rate hazard\./i);
+  if (match) {
+    return `Proses pemuatan halaman terindikasi teramat lambat (${match.groups?.time}ms). File terlalu besar berpotensi memperburuk rasio pentalan.`;
+  }
+
+  return text;
 };
 
 export default function AuditResults({ result }: { result: FullAuditResult }) {
@@ -603,12 +804,12 @@ export default function AuditResults({ result }: { result: FullAuditResult }) {
                         {copiedSchema ? (
                           <>
                             <Check className="h-3.5 w-3.5 mr-1 text-emerald-500" />
-                            Copied
+                            {t("copiedLabel")}
                           </>
                         ) : (
                           <>
                             <Copy className="h-3.5 w-3.5 mr-1" />
-                            Copy JSON
+                            {t("copyJsonLabel")}
                           </>
                         )}
                       </Button>

@@ -68,7 +68,7 @@ async function startServer() {
       );
 
       // 3. Run Gemini AI analysis
-      const aiAnalysis = await runGeminiAnalysis(parsed, seoScore, geoScore, competitorResults, lang);
+      const aiAnalysis = await runGeminiAnalysis(url, parsed, seoScore, geoScore, technicalScore, competitorResults, lang);
 
       res.json({
         timestamp: new Date().toISOString(),
