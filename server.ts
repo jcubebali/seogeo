@@ -2,6 +2,11 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import { fetchAndParse } from "./src/lib/fetcher";
+import { calculateSeoScore } from "./src/lib/seo-scorer";
+import { calculateGeoScore } from "./src/lib/geo-scorer";
+import { calculateTechnicalScore } from "./src/lib/technical-scorer";
+import { runGeminiAnalysis } from "./src/lib/gemini-analyzer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,71 +17,75 @@ async function startServer() {
 
   app.use(express.json());
 
-  // Mock Audit API
+  // Real SEO and GEO Audit Pipeline API
   app.post("/api/audit", async (req, res) => {
-    const { url, competitors } = req.body;
-    
-    if (!url) {
-      return res.status(400).json({ error: "Main URL is required" });
+    try {
+      const { url, competitors = [] } = req.body;
+      if (!url) {
+        return res.status(400).json({ error: "URL is required" });
+      }
+
+      // Limit competitors to 3
+      const limitedCompetitors = Array.isArray(competitors)
+        ? competitors.map((c: any) => typeof c === 'string' ? c : c.url).filter(Boolean).slice(0, 3)
+        : [];
+
+      // 1. Run main page crawling and analysis
+      const parsed = await fetchAndParse(url);
+      const [seoScore, geoScore, technicalScore] = await Promise.all([
+        calculateSeoScore(parsed),
+        calculateGeoScore(parsed),
+        calculateTechnicalScore(parsed)
+      ]);
+
+      // 2. Run competitor analysis in parallel
+      const competitorResults = await Promise.all(
+        limitedCompetitors.map(async (cUrl: string) => {
+          try {
+            const cParsed = await fetchAndParse(cUrl);
+            const [cSeo, cGeo, cTech] = await Promise.all([
+              calculateSeoScore(cParsed),
+              calculateGeoScore(cParsed),
+              calculateTechnicalScore(cParsed)
+            ]);
+            return {
+              url: cUrl,
+              seoScore: cSeo,
+              geoScore: cGeo,
+              technicalScore: cTech
+            };
+          } catch (cErr: any) {
+            console.error(`Competitor crawling failed for "${cUrl}":`, cErr.message);
+            // On failure, construct a safe mock/disabled model score so user chart doesn't break
+            return {
+              url: cUrl,
+              seoScore: { totalScore: 0, breakdown: [], passedChecks: [], failedChecks: ["Crawling Failed"] },
+              geoScore: { totalScore: 0, breakdown: [], passedChecks: [], failedChecks: ["Crawling Failed"] },
+              technicalScore: { totalScore: 0, breakdown: [], metrics: { loadTime: 0, status: 0, hasViewport: false, hasHttps: false } }
+            };
+          }
+        })
+      );
+
+      // 3. Run Gemini AI analysis
+      const aiAnalysis = await runGeminiAnalysis(parsed, seoScore, geoScore, competitorResults);
+
+      res.json({
+        timestamp: new Date().toISOString(),
+        main: {
+          url,
+          parsed,
+          seoScore,
+          geoScore,
+          technicalScore
+        },
+        competitors: competitorResults,
+        aiAnalysis
+      });
+    } catch (err: any) {
+      console.error("Audit API Error:", err);
+      res.status(500).json({ error: err.message || "An unexpected error occurred during raw analysis." });
     }
-
-    // Simulate analysis time
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    // Simulation logic for scores
-    const generateScore = (seed: string) => Math.floor(Math.random() * 40) + 60;
-    
-    const results = {
-      timestamp: new Date().toISOString(),
-      main: {
-        url,
-        scores: {
-          seo: generateScore(url),
-          geo: generateScore(url + "geo"),
-          technical: generateScore(url + "tech"),
-          content: generateScore(url + "content"),
-        },
-        metrics: {
-          lcp: (Math.random() * 2 + 1).toFixed(2) + "s",
-          inp: Math.floor(Math.random() * 150 + 50) + "ms",
-          cls: (Math.random() * 0.1).toFixed(3),
-          mobileFriendly: true,
-          https: true,
-        }
-      },
-      competitors: competitors.map((cUrl: string) => ({
-        url: cUrl,
-        scores: {
-          seo: generateScore(cUrl),
-          geo: generateScore(cUrl + "geo"),
-          technical: generateScore(cUrl + "tech"),
-          content: generateScore(cUrl + "content"),
-        },
-        metrics: {
-          lcp: (Math.random() * 2 + 1).toFixed(2) + "s",
-          inp: Math.floor(Math.random() * 150 + 50) + "ms",
-          cls: (Math.random() * 0.1).toFixed(3),
-        }
-      })),
-      recommendations: [
-        {
-          priority: "Critical",
-          title: "Optimize Image LCP",
-          description: "Images on landing pages are not optimized. Use WebP and lazy loading.",
-          action: "Compress existing images and add loading='lazy' attribute.",
-          code: "<img src='hero.webp' loading='lazy' alt='Service Showcase' />"
-        },
-        {
-          priority: "High",
-          title: "Improve GEO Citation Potential",
-          description: "Content is missing FAQ structure. AI Engines prioritize structured data for citation.",
-          action: "Add an FAQ section using Schema.org to answer common user intents.",
-          code: "{\"@context\": \"https://schema.org\", \"@type\": \"FAQPage\", \"mainEntity\": [...]}"
-        }
-      ]
-    };
-
-    res.json(results);
   });
 
   // Vite middleware for development

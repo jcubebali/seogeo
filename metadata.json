@@ -2,5 +2,5 @@
   "name": "SEO & GEO Audit Pro",
   "description": "Comprehensive SEO Checker, GEO Visibility Analysis, and Competitor Comparison tool for 2026 search ecosystems.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

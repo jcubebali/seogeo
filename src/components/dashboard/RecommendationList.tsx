@@ -78,7 +78,7 @@ export default function RecommendationList({ recommendations }: { recommendation
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6 pt-2">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2 min-w-0">
                 <div className="space-y-6">
                   <div className="space-y-3">
                     <h5 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-zinc-500">
@@ -109,7 +109,7 @@ export default function RecommendationList({ recommendations }: { recommendation
                 </div>
 
                 {rec.code && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 min-w-0">
                     <div className="flex items-center justify-between">
                       <h5 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-zinc-500">
                         <Code2 className="h-3 w-3" /> Implementation
@@ -118,9 +118,9 @@ export default function RecommendationList({ recommendations }: { recommendation
                         <Copy className="h-3 w-3" /> Copy
                       </Button>
                     </div>
-                    <Card className="bg-[#09090b] border border-[#27272a] shadow-2xl relative overflow-hidden group">
+                    <Card className="bg-[#09090b] border border-[#27272a] shadow-2xl relative overflow-hidden group max-w-full">
                       <CardContent className="p-0">
-                        <pre className="p-5 overflow-x-auto text-[11px] font-mono leading-relaxed text-blue-300">
+                        <pre className="p-5 overflow-x-auto text-[11px] font-mono leading-relaxed text-blue-300 max-w-full scrollbar-thin">
                           <code>{rec.code}</code>
                         </pre>
                       </CardContent>

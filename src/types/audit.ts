@@ -122,11 +122,3 @@ export interface AuditFormValues {
   url: string;
   competitors: { url: string }[];
 }
-
-export interface Recommendation {
-  priority: "Critical" | "High" | "Medium" | "Low";
-  title: string;
-  description: string;
-  action: string;
-  code?: string;
-}
